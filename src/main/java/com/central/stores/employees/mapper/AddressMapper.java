@@ -1,20 +1,30 @@
 package com.central.stores.employees.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import java.time.LocalDate;
 
 import com.central.stores.employees.model.Address;
 import com.central.stores.employees.model.dto.AddressDTO;
 
-@Mapper(componentModel = "spring")
-public interface AddressMapper {
-	@Mappings({
-		@Mapping(target= "id", ignore= true),
-		@Mapping(target= "changed", ignore= true),
-		@Mapping(target= "created", expression = "java(java.time.LocalDate.now())"),
-	})
+public final class AddressMapper {
+
+	public static Address toModel(AddressDTO addressDTO) {
+		return Address.builder()
+				.created(LocalDate.now())
+				.city(addressDTO.getCity())
+				.street(addressDTO.getStreet())
+				.number(addressDTO.getNumber())
+				.neighborhood(addressDTO.getNeighborhood())
+				.build();
+	}
 	
-	Address toModel(AddressDTO addressDTO);
-	
+	public static Address updateAddress(Address address, AddressDTO requestAddressDTO) {
+		
+		address.setChanged(LocalDate.now());
+		address.setCity(requestAddressDTO.getCity());
+		address.setStreet(requestAddressDTO.getStreet());
+		address.setNumber(requestAddressDTO.getNumber());
+		address.setNeighborhood(requestAddressDTO.getNeighborhood());
+		
+		return address;
+	}
 }

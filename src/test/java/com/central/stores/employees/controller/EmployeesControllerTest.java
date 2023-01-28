@@ -84,6 +84,6 @@ public class EmployeesControllerTest {
 	@Test
 	void delete()throws Exception {
 		mockMvc.perform(MockMvcRequestBuilders.delete(CONTEXT_PATH + EMPLOYEE_ID))
-				.andExpect(status().isOk());
+				.andExpect(status().isNoContent());
 	}
 }
