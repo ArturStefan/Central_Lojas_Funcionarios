@@ -3,6 +3,7 @@ package com.central.stores.employees.services.implement;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -13,14 +14,19 @@ import com.central.stores.employees.exception.DuplicateDocumentsException;
 import com.central.stores.employees.exception.ResourceNotFoundException;
 import com.central.stores.employees.mapper.EmployeeMapper;
 import com.central.stores.employees.model.Employee;
+import com.central.stores.employees.model.dto.ListEmployee;
 import com.central.stores.employees.model.dto.RequestEmployeeDTO;
 import com.central.stores.employees.model.dto.ResponseEmployeeDTO;
+import com.central.stores.employees.model.dto.ResponseSummarizedEmployeeDTO;
 import com.central.stores.employees.model.dto.error.ResponseError;
+import com.central.stores.employees.pagination.Pagination;
 import com.central.stores.employees.repository.EmployeesRepository;
 import com.central.stores.employees.services.EmployeesServices;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -35,25 +41,40 @@ public class EmployeesServicesImplement implements EmployeesServices {
 
 	private Employee employee;
 	
-	private List<Employee> listEmployees;
-
+	private Page<Employee> pageListEmployees;
+	
+	private ListEmployee responseListEmployee;
+	
 	private ResponseEmployeeDTO responseEmployeeDTO;
+	
+	private List<ResponseEmployeeDTO> listEmployeesDTO;
+
+	private ResponseSummarizedEmployeeDTO responseSummarizedEmployeeDTO;
 	
 	@Override
 	@Cacheable(cacheNames = "Employees", key="#root.method.name")
-	public List<Employee> findAll() {
-		listEmployees = repository.findAllByActiveTrue();
+	public ListEmployee findAll(Integer pageSize, Integer page, String sortBy) {
+		Pageable pageable = Pagination.createPageable(pageSize, page, sortBy);
 		
-		listEmployees.forEach(employee -> employee = Cryptography.decode(employee));
-
+		pageListEmployees = repository.findAllByActiveTrue(pageable);
+		
+		pageListEmployees.forEach(employee -> employee = Cryptography.decode(employee));
+		
+		listEmployeesDTO = pageListEmployees
+				.stream()
+				.map(employee -> EmployeeMapper.modelToResponseEmployeeDTO(employee))
+				.collect(Collectors.toList());
+		
+		responseListEmployee = Pagination.paginationEmployee(pageListEmployees, listEmployeesDTO);
+		
 		LoggerConfig.LOGGER_EMPLOYEE.info("Employee listing");
 
-		return listEmployees;
+		return responseListEmployee;
 	}
 
 	@Override
 	@Cacheable(cacheNames = "Employees", key="#employeeCpf")
-	public Employee findByCpf(String employeeCpf) {
+	public ResponseEmployeeDTO findByCpf(String employeeCpf) {
 		employee = repository.findByCpf(Cryptography.encodeCpf(employeeCpf));
 		
 		if(employee == null) {
@@ -63,26 +84,37 @@ public class EmployeesServicesImplement implements EmployeesServices {
 
 		employee = Cryptography.decode(employee);
 		
+		responseEmployeeDTO = EmployeeMapper.modelToResponseEmployeeDTO(employee);
+		
 		LoggerConfig.LOGGER_EMPLOYEE.info("Employee found");
 
-		return employee;
+		return responseEmployeeDTO;
 	}
 
 	@Override
 	@Cacheable(cacheNames = "Employees", key="#neighborhood")
-	public List<Employee> findByNeighborhood(String neighborhood) {
-		List<Employee> listEmployees = repository.findAllByActiveTrueAndAddressNeighborhood(neighborhood);
+	public ListEmployee findByNeighborhood(Integer pageSize, Integer page, String sortBy, String neighborhood) {
+		Pageable pageable = Pagination.createPageable(pageSize, page, sortBy);
+		
+		pageListEmployees = repository.findAllByActiveTrueAndAddressNeighborhood(pageable, neighborhood);
 
-		if(listEmployees.isEmpty()) {
+		if(pageListEmployees.isEmpty()) {
 			LoggerConfig.LOGGER_EMPLOYEE.error("No record found for this neighborhood");
 			throw new ResourceNotFoundException("No record found for this neighborhood");
 		}
 		
-		listEmployees.forEach(employee -> employee = Cryptography.decode(employee));
+		pageListEmployees.forEach(employee -> employee = Cryptography.decode(employee));
+		
+		listEmployeesDTO = pageListEmployees
+				.stream()
+				.map(employee -> EmployeeMapper.modelToResponseEmployeeDTO(employee))
+				.collect(Collectors.toList());
+		
+		responseListEmployee = Pagination.paginationEmployee(pageListEmployees, listEmployeesDTO);
 		
 		LoggerConfig.LOGGER_EMPLOYEE.info("List of employees by neighborhood");
 
-		return listEmployees;
+		return responseListEmployee;
 	}
 
 	@Override
@@ -106,11 +138,11 @@ public class EmployeesServicesImplement implements EmployeesServices {
 		
 		repository.save(employee);
 
-		responseEmployeeDTO = EmployeeMapper.modelToResponseEmployeeDTO(employee);
+		responseSummarizedEmployeeDTO = EmployeeMapper.modelToResponseSummarizedEmployeeDTO(employee);
 
 		LoggerConfig.LOGGER_EMPLOYEE.info("Employee saved");
 
-		return new ResponseEntity<Object>(responseEmployeeDTO, HttpStatus.CREATED) ;
+		return new ResponseEntity<Object>(responseSummarizedEmployeeDTO, HttpStatus.CREATED) ;
 
 	}
 
@@ -168,5 +200,4 @@ public class EmployeesServicesImplement implements EmployeesServices {
 		
 		return message;
 	}
-
 }
