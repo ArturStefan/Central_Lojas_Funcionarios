@@ -1,13 +1,18 @@
 package com.central.stores.employees.test.utils;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import com.central.stores.employees.model.Address;
 import com.central.stores.employees.model.Employee;
 import com.central.stores.employees.model.dto.AddressDTO;
+import com.central.stores.employees.model.dto.ListEmployee;
+import com.central.stores.employees.model.dto.PaginationDTO;
 import com.central.stores.employees.model.dto.RequestEmployeeDTO;
 import com.central.stores.employees.model.dto.ResponseEmployeeDTO;
+import com.central.stores.employees.model.dto.ResponseSummarizedEmployeeDTO;
+import com.central.stores.employees.pagination.Pagination;
 
 public final class ClassBuilder {
 
@@ -68,12 +73,47 @@ public final class ClassBuilder {
 		return requestEmployeeDTO;
 	}
 	
-	public static ResponseEmployeeDTO responseEmployeeDTOBuilder() {
-		ResponseEmployeeDTO responseEmployeeDTO = new ResponseEmployeeDTO();
+	public static ResponseSummarizedEmployeeDTO responseSummarizedEmployeeDTOBuilder() {
+		ResponseSummarizedEmployeeDTO responseEmployeeDTO = new ResponseSummarizedEmployeeDTO();
 
 		responseEmployeeDTO.setName("Teste");
 		responseEmployeeDTO.setId(UUID.randomUUID());
 		
 		return responseEmployeeDTO;
+	}
+
+	public static ResponseEmployeeDTO responseEmployeeDTOBuilder() {
+		ResponseEmployeeDTO responseEmployeeDTO = new ResponseEmployeeDTO();
+		responseEmployeeDTO.setName("Teste");
+		responseEmployeeDTO.setId(UUID.randomUUID());
+		responseEmployeeDTO.setCpf("123456789");
+		responseEmployeeDTO.setRg("5544669878");
+		responseEmployeeDTO.setRole("testador");
+		responseEmployeeDTO.setGender("M");
+		responseEmployeeDTO.setPhone("987654321");
+		responseEmployeeDTO.setEmail("teste@teste.com");
+		responseEmployeeDTO.setAddress(addressDTOBuilder());
+		
+		return responseEmployeeDTO;
+	}
+	
+	public static PaginationDTO paginationBuilder() {
+		PaginationDTO pagination = new PaginationDTO();
+		pagination.setOffset(0);
+		pagination.setPageSize(4);
+		pagination.setPageNumber(1);
+		pagination.setMoreElements(true);
+		pagination.setTotalPages(6);
+	    pagination.setTotalElements(2);
+	    
+		return pagination;
+	}
+	
+	public static ListEmployee listEmployeeBuilder() {
+		ListEmployee listEmployee = new ListEmployee();
+		listEmployee.setPageable(paginationBuilder());
+		List<ResponseEmployeeDTO> listEmployeeDTO = List.of(responseEmployeeDTOBuilder());
+		listEmployee.setContent(listEmployeeDTO);
+		return listEmployee;
 	}
 }
