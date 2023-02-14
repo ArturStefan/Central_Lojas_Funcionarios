@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -21,7 +20,10 @@ import com.central.stores.employees.crypto.Cryptography;
 import com.central.stores.employees.exception.DuplicateDocumentsException;
 import com.central.stores.employees.exception.ResourceNotFoundException;
 import com.central.stores.employees.model.Employee;
+import com.central.stores.employees.model.dto.ListEmployee;
 import com.central.stores.employees.model.dto.RequestEmployeeDTO;
+import com.central.stores.employees.model.dto.ResponseEmployeeDTO;
+import com.central.stores.employees.pagination.Pagination;
 import com.central.stores.employees.repository.EmployeesRepository;
 import com.central.stores.employees.test.utils.ClassBuilder;
 
@@ -30,6 +32,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -48,28 +53,51 @@ public class EmployeesServicesImplementTest {
 	private Employee employee;
 
 	private LocalValidatorFactoryBean validator;
+	
+	private ResponseEmployeeDTO responseEmployeeDTO; 
 
 	private RequestEmployeeDTO requestEmployeeDTO;
 	
 	private Set<ConstraintViolation<Object>> violations;
+	
+	
+	
+	
+	
+	private Pageable pageable;
+	
+	private Page<Employee> pageEmployee;
+
+	private Page<Employee> pageEmployeeEmpty;
 
 	@BeforeEach
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
-		employee = ClassBuilder.employeeBuilder();
-		requestEmployeeDTO = ClassBuilder.requestEmployeeDTOBuilder();
 		
 		validator = new LocalValidatorFactoryBean();
 		validator.afterPropertiesSet();
+
+		UUID id = UUID.randomUUID();
+		employee = ClassBuilder.employeeBuilder();
+		responseEmployeeDTO = ClassBuilder.responseEmployeeDTOBuilder();
+		requestEmployeeDTO = ClassBuilder.requestEmployeeDTOBuilder();
+
+		employee.setId(id);
+		responseEmployeeDTO.setId(id);
+		employee.setAddress(ClassBuilder.addressBuilder());
+		
+		pageable = Pagination.createPageable(1, 1, "name,DESC");
+		pageEmployeeEmpty = new PageImpl<Employee>(List.of(), pageable, 1L);
+		pageEmployee = new PageImpl<Employee>(List.of(employee), pageable, 1L);
 	}
 	
 	@Test
 	public void findByCpf() {
 		employee = Cryptography.encode(employee);
 		when(repository.findByCpf(anyString())).thenReturn(employee);
-		Employee emp = services.findByCpf("123456789");
+		ResponseEmployeeDTO emp = services.findByCpf("123456789");
 
-		assertEquals(emp, employee);
+		assertEquals(emp.toString(), responseEmployeeDTO.toString());
 	}
 	
 	@Test
@@ -89,9 +117,9 @@ public class EmployeesServicesImplementTest {
 	@Test
 	public void findByNeighborhood() {
 		employee = Cryptography.encode(employee);
-		when(repository.findAllByActiveTrueAndAddressNeighborhood(anyString()))
-		.thenReturn(List.of(employee));
-		List<Employee> empList = services.findByNeighborhood("teste");
+		when(repository.findAllByActiveTrueAndAddressNeighborhood(any(), anyString()))
+		.thenReturn(pageEmployee);
+		ListEmployee empList = services.findByNeighborhood(1, 1, "name,DESC","teste");
 		
 		assertNotNull(empList);
 	}
@@ -100,11 +128,11 @@ public class EmployeesServicesImplementTest {
 	public void findByNeighborhoodResourceNotFoundException() {
 		String messageError = "No record found for this neighborhood";
 		employee = Cryptography.encode(employee);
-		when(repository.findAllByActiveTrueAndAddressNeighborhood(anyString()))
-		.thenReturn(new ArrayList<Employee>());
+		when(repository.findAllByActiveTrueAndAddressNeighborhood(any(), anyString()))
+		.thenReturn(pageEmployeeEmpty);
 		
 		String message = assertThrows(ResourceNotFoundException.class, () -> {
-			services.findByNeighborhood("teste");
+			services.findByNeighborhood(1, 1, "name,DESC", "teste");
 		}).getMessage();
 		
 		assertEquals(messageError, message);
@@ -113,8 +141,8 @@ public class EmployeesServicesImplementTest {
 	@Test
 	public void findAll() {
 		employee = Cryptography.encode(employee);
-		when(repository.findAllByActiveTrue()).thenReturn(List.of(employee));
-		List<Employee> empList = services.findAll();
+		when(repository.findAllByActiveTrue(any())).thenReturn(pageEmployee);
+		ListEmployee empList = services.findAll(1, 1, "name,DESC");
 		assertNotNull(empList);
 	}
 	

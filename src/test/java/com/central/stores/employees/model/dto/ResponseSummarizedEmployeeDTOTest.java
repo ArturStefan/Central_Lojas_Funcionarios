@@ -4,40 +4,40 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.UUID;
 
+import com.central.stores.employees.test.utils.ClassBuilder;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.central.stores.employees.test.utils.ClassBuilder;
-
-public class ResponseEmployeeDTOTest {
+public class ResponseSummarizedEmployeeDTOTest {
 
 	private UUID id;
 	
-	private ResponseEmployeeDTO expectedResponseEmployeeDTO;
+	private ResponseSummarizedEmployeeDTO expectedResponseSummarizedEmployeeDTO;
 	
 	@BeforeEach
 	void setUp() {
 		id = UUID.randomUUID();
-		expectedResponseEmployeeDTO = ClassBuilder.responseEmployeeDTOBuilder();
-		expectedResponseEmployeeDTO.setId(id);
+		expectedResponseSummarizedEmployeeDTO = ClassBuilder.responseSummarizedEmployeeDTOBuilder();
+		expectedResponseSummarizedEmployeeDTO.setId(id);
 	}
 	
 	@Test
 	void setter() {
-		ResponseEmployeeDTO responseEmployeeDTO = new ResponseEmployeeDTO();
-		responseEmployeeDTO.setId(id);
-		responseEmployeeDTO.setName("Teste");
+		ResponseSummarizedEmployeeDTO responseSummarizedEmployeeDTO = new ResponseSummarizedEmployeeDTO();
+		responseSummarizedEmployeeDTO.setId(id);
+		responseSummarizedEmployeeDTO.setName("Teste");
 		
-		assertEquals(expectedResponseEmployeeDTO.toString(), responseEmployeeDTO.toString());
+		assertEquals(expectedResponseSummarizedEmployeeDTO.toString(), responseSummarizedEmployeeDTO.toString());
 	}
 	
 	@Test
 	void builder() {
-		ResponseEmployeeDTO responseEmployeeDTO = ResponseEmployeeDTO.builder()
+		ResponseSummarizedEmployeeDTO responseSummarizedEmployeeDTO = ResponseSummarizedEmployeeDTO.builder()
 				.id(id)
 				.name("Teste")
 				.build();
 		
-		assertEquals(expectedResponseEmployeeDTO.toString(), responseEmployeeDTO.toString());
+		assertEquals(expectedResponseSummarizedEmployeeDTO.toString(), responseSummarizedEmployeeDTO.toString());
 	}
 }
