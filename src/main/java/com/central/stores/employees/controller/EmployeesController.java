@@ -1,10 +1,12 @@
 package com.central.stores.employees.controller;
 
-import java.util.List;
 import java.util.UUID;
 
-import com.central.stores.employees.model.Employee;
+import javax.validation.constraints.Min;
+
+import com.central.stores.employees.model.dto.ListEmployee;
 import com.central.stores.employees.model.dto.RequestEmployeeDTO;
+import com.central.stores.employees.model.dto.ResponseEmployeeDTO;
 import com.central.stores.employees.services.EmployeesServices;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,18 +47,29 @@ public class EmployeesController {
 		 return new ResponseEntity<Object>(HttpStatus.NO_CONTENT);
 	}
 	
-	@GetMapping("list")
-	public ResponseEntity<List<Employee>> listEmployees(){
-		return new ResponseEntity<List<Employee>>(services.findAll(), HttpStatus.OK);
+	@GetMapping("/{employeeCPF}")
+	public ResponseEntity<ResponseEmployeeDTO> findByCPF(@PathVariable("employeeCPF") final String employeeCpf){
+		return new ResponseEntity<ResponseEmployeeDTO>(services.findByCpf(employeeCpf),HttpStatus.OK);
 	}
 	
-	@GetMapping("/{employeeCPF}")
-	public ResponseEntity<Employee> findByCPF(@PathVariable("employeeCPF") final String employeeCpf){
-		return new ResponseEntity<Employee>(services.findByCpf(employeeCpf),HttpStatus.OK);
+	@GetMapping("list")
+	public ResponseEntity<ListEmployee> listEmployees(
+			@Min(value=1, message = "Tamanho mínimo 1.")
+			@RequestParam(defaultValue = "10" , value="pageSize", required = false) Integer pageSize, 
+			@Min(value=0, message = "Tamanho mínimo 0.")
+			@RequestParam(defaultValue = "0" , value="page", required = false) Integer page, 
+			@RequestParam(defaultValue = "name, DESC" , value="sortBy", required = false) String sortBy){
+		return new ResponseEntity<ListEmployee>(services.findAll(pageSize, page, sortBy), HttpStatus.OK);
 	}
 	
 	@GetMapping
-	public ResponseEntity<List<Employee>> findByNeighborhood(@RequestParam("neighborhood") String neighborhood){
-		return new ResponseEntity<List<Employee>>(services.findByNeighborhood(neighborhood), HttpStatus.OK);
+	public ResponseEntity<ListEmployee> findByNeighborhood(
+			@Min(value=1, message = "Tamanho mínimo 1.")
+			@RequestParam(defaultValue = "10" , value="pageSize", required = false) Integer pageSize, 
+			@Min(value=0, message = "Tamanho mínimo 0.")
+			@RequestParam(defaultValue = "0" , value="page", required = false) Integer page, 
+			@RequestParam(defaultValue = "name, DESC" , value="sortBy", required = false) String sortBy,
+			@RequestParam("neighborhood") String neighborhood){
+		return new ResponseEntity<ListEmployee>(services.findByNeighborhood(pageSize, page, sortBy, neighborhood), HttpStatus.OK);
 	}
 }
