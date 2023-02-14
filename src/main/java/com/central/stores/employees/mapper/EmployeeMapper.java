@@ -3,8 +3,10 @@ package com.central.stores.employees.mapper;
 import java.time.LocalDate;
 
 import com.central.stores.employees.model.Employee;
+import com.central.stores.employees.model.dto.AddressDTO;
 import com.central.stores.employees.model.dto.RequestEmployeeDTO;
 import com.central.stores.employees.model.dto.ResponseEmployeeDTO;
+import com.central.stores.employees.model.dto.ResponseSummarizedEmployeeDTO;
 
 
 public final class EmployeeMapper {
@@ -30,8 +32,8 @@ public final class EmployeeMapper {
 		return employee;
 	}
 
-	public static ResponseEmployeeDTO modelToResponseEmployeeDTO(Employee employee){
-		return ResponseEmployeeDTO.builder()
+	public static ResponseSummarizedEmployeeDTO modelToResponseSummarizedEmployeeDTO(Employee employee){
+		return ResponseSummarizedEmployeeDTO.builder()
 				.id(employee.getId())
 				.name(employee.getName())
 				.build();
@@ -48,5 +50,29 @@ public final class EmployeeMapper {
 		employee.setGender(requestEmployeeDTO.getGender());
 		
 		return employee;
+	}
+	
+	public static ResponseEmployeeDTO modelToResponseEmployeeDTO(Employee employee) {
+		return ResponseEmployeeDTO.builder()
+				.id(employee.getId())
+				.name(employee.getName())
+				.cpf(employee.getCpf())
+				.rg(employee.getRg())
+				.role(employee.getRole())
+				.gender(employee.getGender())
+				.phone(employee.getPhone())
+				.email(employee.getEmail())
+				.address(addressIsNull(employee))
+				.build();
+	}
+	
+	private static AddressDTO addressIsNull(Employee employee) {
+		AddressDTO addressDTO = null;
+		
+		if(employee.getAddress() != null) {
+			addressDTO = AddressMapper.toDTO(employee.getAddress());
+		}
+		
+		return addressDTO;
 	}
 }

@@ -27,4 +27,13 @@ public final class AddressMapper {
 		
 		return address;
 	}
+	
+	public static AddressDTO toDTO(Address address) {
+		return AddressDTO.builder()
+				.city(address.getCity())
+				.street(address.getStreet())
+				.number(address.getNumber())
+				.neighborhood(address.getNeighborhood())
+				.build();
+	}
 }
