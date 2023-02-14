@@ -1,5 +1,7 @@
 package com.central.stores.employees.model.dto;
 
+import java.io.Serializable;
+
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -17,7 +19,8 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddressDTO {
+public class AddressDTO implements Serializable {
+	private static final long serialVersionUID = 1L;
 	@NotEmpty(message = "{street.not.empty}")
 	private String street;
 	@NotNull(message = "{number.not.null}")
